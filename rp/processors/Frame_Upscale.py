@@ -1,11 +1,11 @@
 import cv2 
 import numpy as np
 import onnxruntime
-import roop.globals
+import rp.globals
 import threading
 
-from roop.utilities import resolve_relative_path
-from roop.typing import Frame
+from rp.utilities import resolve_relative_path
+from rp.typing import Frame
 
 class Frame_Upscale():
     plugin_options:dict = None
@@ -41,7 +41,7 @@ class Frame_Upscale():
                 model_path = resolve_relative_path('../models/Frame/lsdir_x4.onnx')
                 self.scale = 4
 
-            self.model_upscale = onnxruntime.InferenceSession(model_path, None, providers=roop.globals.execution_providers)
+            self.model_upscale = onnxruntime.InferenceSession(model_path, None, providers=rp.globals.execution_providers)
             self.model_inputs = self.model_upscale.get_inputs()
             model_outputs = self.model_upscale.get_outputs()
             self.io_binding = self.model_upscale.io_binding()

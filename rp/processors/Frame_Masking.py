@@ -1,10 +1,10 @@
 import cv2 
 import numpy as np
 import onnxruntime
-import roop.globals
+import rp.globals
 
-from roop.utilities import resolve_relative_path
-from roop.typing import Frame
+from rp.utilities import resolve_relative_path
+from rp.typing import Frame
 
 class Frame_Masking():
     plugin_options:dict = None
@@ -27,7 +27,7 @@ class Frame_Masking():
             self.devicename = self.plugin_options["devicename"]
             self.devicename = self.devicename.replace('mps', 'cpu')
             model_path = resolve_relative_path('../models/Frame/isnet-general-use.onnx')
-            self.model_masking = onnxruntime.InferenceSession(model_path, None, providers=roop.globals.execution_providers)
+            self.model_masking = onnxruntime.InferenceSession(model_path, None, providers=rp.globals.execution_providers)
             self.model_inputs = self.model_masking.get_inputs()
             model_outputs = self.model_masking.get_outputs()
             self.io_binding = self.model_masking.io_binding()

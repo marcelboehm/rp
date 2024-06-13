@@ -31,7 +31,7 @@ Are you using a GPU?
 - [ ] Intel
 - [ ] Mac
 
-**Which version of roop unleashed are you using?**
+**Which version of rp unleashed are you using?**
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.

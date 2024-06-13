@@ -4,20 +4,20 @@ import numpy as np
 import psutil
 
 from enum import Enum
-from roop.ProcessOptions import ProcessOptions
+from rp.ProcessOptions import ProcessOptions
 
-from roop.face_util import get_first_face, get_all_faces, rotate_image_180, rotate_anticlockwise, rotate_clockwise, clamp_cut_values
-from roop.utilities import compute_cosine_distance, get_device, str_to_class
-import roop.vr_util as vr
+from rp.face_util import get_first_face, get_all_faces, rotate_image_180, rotate_anticlockwise, rotate_clockwise, clamp_cut_values
+from rp.utilities import compute_cosine_distance, get_device, str_to_class
+import rp.vr_util as vr
 
 from typing import Any, List, Callable
-from roop.typing import Frame, Face
+from rp.typing import Frame, Face
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Thread, Lock
 from queue import Queue
 from tqdm import tqdm
-from roop.ffmpeg_writer import FFMPEG_VideoWriter
-import roop.globals
+from rp.ffmpeg_writer import FFMPEG_VideoWriter
+import rp.globals
 
 
 # Poor man's enum to be able to compare to int
@@ -104,9 +104,9 @@ class ProcessMgr():
         self.options = options
         devicename = get_device()
 
-        roop.globals.g_desired_face_analysis=["landmark_3d_68", "landmark_2d_106","detection","recognition"]
+        rp.globals.g_desired_face_analysis=["landmark_3d_68", "landmark_2d_106","detection","recognition"]
         if options.swap_mode == "all_female" or options.swap_mode == "all_male":
-            roop.globals.g_desired_face_analysis.append("genderage")
+            rp.globals.g_desired_face_analysis.append("genderage")
 
         for p in self.processors:
             newp = next((x for x in options.processors.keys() if x == p.processorname), None)
@@ -119,7 +119,7 @@ class ProcessMgr():
             p = self.reuseOldProcessor(key)
             if p is None:
                 classname = self.plugins[key]
-                module = 'roop.processors.' + classname
+                module = 'rp.processors.' + classname
                 p = str_to_class(module, classname)
             if p is not None:
                 extoption.update({"devicename": devicename})
@@ -171,7 +171,7 @@ class ProcessMgr():
 
     def process_frames(self, source_files: List[str], target_files: List[str], current_files, update: Callable[[], None]) -> None:
         for f in current_files:
-            if not roop.globals.processing:
+            if not rp.globals.processing:
                 return
             
             # Decode the byte array into an OpenCV image
@@ -197,7 +197,7 @@ class ProcessMgr():
         if frame_start > 0:
             cap.set(cv2.CAP_PROP_POS_FRAMES,frame_start)
 
-        while True and roop.globals.processing:
+        while True and rp.globals.processing:
             ret, frame = cap.read()
             if not ret:
                 break
@@ -275,7 +275,7 @@ class ProcessMgr():
             self.frames_queue.append(Queue(1))
             self.processed_queue.append(Queue(1))
 
-        self.videowriter =  FFMPEG_VideoWriter(target_video, (width, height), fps, codec=roop.globals.video_encoder, crf=roop.globals.video_quality, audiofile=None)
+        self.videowriter =  FFMPEG_VideoWriter(target_video, (width, height), fps, codec=rp.globals.video_encoder, crf=rp.globals.video_quality, audiofile=None)
 
         readthread = Thread(target=self.read_frames_thread, args=(cap, frame_start, frame_end, threads))
         readthread.start()
@@ -329,13 +329,13 @@ class ProcessMgr():
         temp_frame = frame.copy()
         num_swapped, temp_frame = self.swap_faces(frame, temp_frame)
         if num_swapped > 0:
-            if roop.globals.no_face_action == eNoFaceAction.SKIP_FRAME_IF_DISSIMILAR:
+            if rp.globals.no_face_action == eNoFaceAction.SKIP_FRAME_IF_DISSIMILAR:
                 if len(self.input_face_datas) > num_swapped:
                     return None
             return temp_frame
-        if roop.globals.no_face_action == eNoFaceAction.USE_ORIGINAL_FRAME:
+        if rp.globals.no_face_action == eNoFaceAction.USE_ORIGINAL_FRAME:
             return frame
-        if roop.globals.no_face_action == eNoFaceAction.SKIP_FRAME:
+        if rp.globals.no_face_action == eNoFaceAction.SKIP_FRAME:
             #This only works with in-mem processing, as it simply skips the frame.
             #For 'extract frames' it simply leaves the unprocessed frame unprocessed and it gets used in the final output by ffmpeg.
             #If we could delete that frame here, that'd work but that might cause ffmpeg to fail unless the frames are renamed, and I don't think we have the info on what frame it actually is?????
@@ -398,7 +398,7 @@ class ProcessMgr():
                                     temp_frame = self.process_face(i, face, temp_frame)
                                 num_faces_found += 1
                             del face
-                            if not roop.globals.vr_mode and num_faces_found == num_targetfaces:
+                            if not rp.globals.vr_mode and num_faces_found == num_targetfaces:
                                 break
             elif self.options.swap_mode == "all_female" or self.options.swap_mode == "all_male":
                 gender = 'F' if self.options.swap_mode == "all_female" else 'M'
@@ -408,7 +408,7 @@ class ProcessMgr():
                         temp_frame = self.process_face(self.options.selected_index, face, temp_frame)
                     del face
 
-        if roop.globals.vr_mode and num_faces_found % 2 > 0:
+        if rp.globals.vr_mode and num_faces_found % 2 > 0:
             # stereo image, there has to be an even number of faces
             num_faces_found = 0
             return num_faces_found, frame
@@ -487,7 +487,7 @@ class ProcessMgr():
 
 
     def process_face(self,face_index, target_face:Face, frame:Frame):
-        from roop.face_util import align_crop
+        from rp.face_util import align_crop
 
         enhanced_frame = None
         if(len(self.input_face_datas) > 0):
@@ -496,7 +496,7 @@ class ProcessMgr():
             inputface = None
 
         rotation_action = None
-        if roop.globals.autorotate_faces:
+        if rp.globals.autorotate_faces:
             # check for sideways rotation of face
             rotation_action = self.rotation_action(target_face, frame)
             if rotation_action is not None:
@@ -520,7 +520,7 @@ class ProcessMgr():
 
 
 
-        # if roop.globals.vr_mode:
+        # if rp.globals.vr_mode:
             # bbox = target_face.bbox
             # [orig_width, orig_height, _] = frame.shape
 

@@ -12,7 +12,7 @@ from math import sqrt
 
 from torchvision.transforms.functional import normalize
 
-from roop.typing import Face, Frame, FaceSet
+from rp.typing import Face, Frame, FaceSet
 
 
 THREAD_LOCK_DMDNET = threading.Lock()

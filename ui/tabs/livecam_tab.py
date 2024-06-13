@@ -1,5 +1,5 @@
 import gradio as gr
-import roop.globals
+import rp.globals
 import ui.globals
 
 
@@ -34,18 +34,18 @@ def livecam_tab():
 
 
 def start_cam(stream_to_obs, cam, reso, enhancer, blend_ratio):
-    from roop.virtualcam import start_virtual_cam
-    from roop.utilities import convert_to_gradio
+    from rp.virtualcam import start_virtual_cam
+    from rp.utilities import convert_to_gradio
 
     start_virtual_cam(stream_to_obs, cam, reso)
-    roop.globals.selected_enhancer = enhancer
-    roop.globals.blend_ratio = blend_ratio
+    rp.globals.selected_enhancer = enhancer
+    rp.globals.blend_ratio = blend_ratio
     while True:
         yield gr.Button(interactive=False), gr.Button(interactive=True), convert_to_gradio(ui.globals.ui_camera_frame)
         
 
 def stop_swap():
-    from roop.virtualcam import stop_virtual_cam
+    from rp.virtualcam import stop_virtual_cam
     stop_virtual_cam()
     return gr.Button(interactive=True), gr.Button(interactive=False)
     

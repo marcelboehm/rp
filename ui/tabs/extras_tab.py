@@ -1,9 +1,9 @@
 import os
 import gradio as gr
 import shutil
-import roop.utilities as util
-import roop.util_ffmpeg as ffmpeg
-import roop.globals
+import rp.utilities as util
+import rp.util_ffmpeg as ffmpeg
+import rp.globals
 
 frame_filters_map = { 
     "Colorize B/W Images (Deoldify Artistic)" : {"colorizer" : {"subtype": "deoldify_artistic"}},
@@ -71,7 +71,7 @@ def extras_tab():
                     start_frame_process=gr.Button("Start processing")
 
         with gr.Row():
-            gr.Button("👀 Open Output Folder", size='sm').click(fn=lambda: util.open_folder(roop.globals.output_path))
+            gr.Button("👀 Open Output Folder", size='sm').click(fn=lambda: util.open_folder(rp.globals.output_path))
         with gr.Row():
             extra_files_output = gr.Files(label='Resulting output files', file_count="multiple")
 
@@ -89,7 +89,7 @@ def on_cut_video(files, cut_start_frame, cut_end_frame, reencode):
     resultfiles = []
     for tf in files:
         f = tf.name
-        destfile = util.get_destfilename_from_path(f, roop.globals.output_path, '_cut')
+        destfile = util.get_destfilename_from_path(f, rp.globals.output_path, '_cut')
         ffmpeg.cut_video(f, destfile, cut_start_frame, cut_end_frame, reencode)
         if os.path.isfile(destfile):
             resultfiles.append(destfile)
@@ -105,7 +105,7 @@ def on_join_videos(files, chk_encode):
     filenames = []
     for f in files:
         filenames.append(f.name)
-    destfile = util.get_destfilename_from_path(filenames[0], roop.globals.output_path, '_join')
+    destfile = util.get_destfilename_from_path(filenames[0], rp.globals.output_path, '_join')
     sorted_filenames = util.sort_filenames_ignore_path(filenames)        
     ffmpeg.join_videos(sorted_filenames, destfile, not chk_encode)
     resultfiles = []
@@ -119,7 +119,7 @@ def on_join_videos(files, chk_encode):
 
 def on_extras_create_video(images_path,fps, create_gif):
     util.sort_rename_frames(os.path.dirname(images_path))
-    destfilename = os.path.join(roop.globals.output_path, "img2video." + roop.globals.CFG.output_video_format)
+    destfilename = os.path.join(rp.globals.output_path, "img2video." + rp.globals.CFG.output_video_format)
     ffmpeg.create_video('', destfilename, fps, images_path)
     resultfiles = []
     if os.path.isfile(destfilename):
@@ -151,17 +151,17 @@ def on_extras_extract_frames(files):
 
 def on_frame_process(files, filterselection, upscaleselection):
     import pathlib
-    from roop.core import batch_process_with_options
-    from roop.ProcessEntry import ProcessEntry
-    from roop.ProcessOptions import ProcessOptions
+    from rp.core import batch_process_with_options
+    from rp.ProcessEntry import ProcessEntry
+    from rp.ProcessOptions import ProcessOptions
     from ui.main import prepare_environment
 
 
     if files is None:
         return None
 
-    if roop.globals.CFG.clear_output:
-        shutil.rmtree(roop.globals.output_path)
+    if rp.globals.CFG.clear_output:
+        shutil.rmtree(rp.globals.output_path)
     prepare_environment()
     list_files_process : list[ProcessEntry] = []
 
@@ -177,7 +177,7 @@ def on_frame_process(files, filterselection, upscaleselection):
         processoroptions.update(frame_upscalers_map[filter])
     options = ProcessOptions(processoroptions, 0,  0, "all", 0, None, None, None, False)
     batch_process_with_options(list_files_process, options, None)
-    outdir = pathlib.Path(roop.globals.output_path)
+    outdir = pathlib.Path(rp.globals.output_path)
     outfiles = [str(item) for item in outdir.rglob("*") if item.is_file()]
     return outfiles
 

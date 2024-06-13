@@ -155,7 +155,7 @@ class FFMPEG_VideoWriter:
             #    self.proc.stdin.write(img_array.tostring())
         except IOError as err:
             _, ffmpeg_error = self.proc.communicate()
-            error = (str(err) + ("\n\nroop unleashed error: FFMPEG encountered "
+            error = (str(err) + ("\n\nrp unleashed error: FFMPEG encountered "
                                  "the following error while writing file %s:"
                                  "\n\n %s" % (self.filename, str(ffmpeg_error))))
 

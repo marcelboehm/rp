@@ -2,10 +2,10 @@ from typing import Any, List, Callable
 import cv2 
 import numpy as np
 import onnxruntime
-import roop.globals
+import rp.globals
 
-from roop.typing import Face, Frame, FaceSet
-from roop.utilities import resolve_relative_path
+from rp.typing import Face, Frame, FaceSet
+from rp.utilities import resolve_relative_path
 
 
 class Enhance_GPEN():
@@ -27,7 +27,7 @@ class Enhance_GPEN():
         self.plugin_options = plugin_options
         if self.model_gpen is None:
             model_path = resolve_relative_path('../models/GPEN-BFR-512.onnx')
-            self.model_gpen = onnxruntime.InferenceSession(model_path, None, providers=roop.globals.execution_providers)
+            self.model_gpen = onnxruntime.InferenceSession(model_path, None, providers=rp.globals.execution_providers)
             # replace Mac mps with cpu for the moment
             self.devicename = self.plugin_options["devicename"].replace('mps', 'cpu')
 

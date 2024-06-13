@@ -1,11 +1,11 @@
-import roop.globals
+import rp.globals
 import cv2
 import numpy as np
 import onnx
 import onnxruntime
 
-from roop.typing import Face, Frame
-from roop.utilities import resolve_relative_path
+from rp.typing import Face, Frame
+from rp.utilities import resolve_relative_path
 
 
 
@@ -33,7 +33,7 @@ class FaceSwapInsightFace():
             #cuda_options = {"arena_extend_strategy": "kSameAsRequested", 'cudnn_conv_algo_search': 'DEFAULT'}            
             sess_options = onnxruntime.SessionOptions()
             sess_options.enable_cpu_mem_arena = False            
-            self.model_swap_insightface = onnxruntime.InferenceSession(model_path, sess_options, providers=roop.globals.execution_providers)
+            self.model_swap_insightface = onnxruntime.InferenceSession(model_path, sess_options, providers=rp.globals.execution_providers)
 
 
     

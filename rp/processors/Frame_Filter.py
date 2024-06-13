@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from roop.typing import Frame
+from rp.typing import Frame
 
 class Frame_Filter():
     processorname = 'generic_filter'

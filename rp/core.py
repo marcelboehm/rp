@@ -17,17 +17,17 @@ import pathlib
 
 from time import time
 
-import roop.globals
-import roop.metadata
-import roop.utilities as util
-import roop.util_ffmpeg as ffmpeg
+import rp.globals
+import rp.metadata
+import rp.utilities as util
+import rp.util_ffmpeg as ffmpeg
 import ui.main as main
 from settings import Settings
-from roop.face_util import extract_face_images
-from roop.ProcessEntry import ProcessEntry
-from roop.ProcessMgr import ProcessMgr
-from roop.ProcessOptions import ProcessOptions
-from roop.capturer import get_video_frame_total
+from rp.face_util import extract_face_images
+from rp.ProcessEntry import ProcessEntry
+from rp.ProcessMgr import ProcessMgr
+from rp.ProcessOptions import ProcessOptions
+from rp.capturer import get_video_frame_total
 
 
 clip_text = None
@@ -37,7 +37,7 @@ call_display_ui = None
 process_mgr = None
 
 
-if 'ROCMExecutionProvider' in roop.globals.execution_providers:
+if 'ROCMExecutionProvider' in rp.globals.execution_providers:
     del torch
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
@@ -46,11 +46,11 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 def parse_args() -> None:
     signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
-    roop.globals.headless = False
+    rp.globals.headless = False
     # Always enable all processors when using GUI
     if len(sys.argv) > 1:
         print('No CLI args supported - use Settings Tab instead')
-    roop.globals.frame_processors = ['face_swapper', 'face_enhancer']
+    rp.globals.frame_processors = ['face_swapper', 'face_enhancer']
 
 
 def encode_execution_providers(execution_providers: List[str]) -> List[str]:
@@ -73,19 +73,19 @@ def suggest_execution_providers() -> List[str]:
 
 
 def suggest_execution_threads() -> int:
-    if 'DmlExecutionProvider' in roop.globals.execution_providers:
+    if 'DmlExecutionProvider' in rp.globals.execution_providers:
         return 1
-    if 'ROCMExecutionProvider' in roop.globals.execution_providers:
+    if 'ROCMExecutionProvider' in rp.globals.execution_providers:
         return 1
     return 8
 
 
 def limit_resources() -> None:
     # limit memory usage
-    if roop.globals.max_memory:
-        memory = roop.globals.max_memory * 1024 ** 3
+    if rp.globals.max_memory:
+        memory = rp.globals.max_memory * 1024 ** 3
         if platform.system().lower() == 'darwin':
-            memory = roop.globals.max_memory * 1024 ** 6
+            memory = rp.globals.max_memory * 1024 ** 6
         if platform.system().lower() == 'windows':
             import ctypes
             kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
@@ -105,7 +105,7 @@ def release_resources() -> None:
         process_mgr = None
 
     gc.collect()
-    # if 'CUDAExecutionProvider' in roop.globals.execution_providers and torch.cuda.is_available():
+    # if 'CUDAExecutionProvider' in rp.globals.execution_providers and torch.cuda.is_available():
     #     with torch.cuda.device('cuda'):
     #         torch.cuda.empty_cache()
     #         torch.cuda.ipc_collect()
@@ -156,14 +156,14 @@ def update_status(message: str) -> None:
 
 
 def start() -> None:
-    if roop.globals.headless:
+    if rp.globals.headless:
         print('Headless mode currently unsupported - starting UI!')
-        # faces = extract_face_images(roop.globals.source_path,  (False, 0))
-        # roop.globals.INPUT_FACES.append(faces[roop.globals.source_face_index])
-        # faces = extract_face_images(roop.globals.target_path,  (False, util.has_image_extension(roop.globals.target_path)))
-        # roop.globals.TARGET_FACES.append(faces[roop.globals.target_face_index])
-        # if 'face_enhancer' in roop.globals.frame_processors:
-        #     roop.globals.selected_enhancer = 'GFPGAN'
+        # faces = extract_face_images(rp.globals.source_path,  (False, 0))
+        # rp.globals.INPUT_FACES.append(faces[rp.globals.source_face_index])
+        # faces = extract_face_images(rp.globals.target_path,  (False, util.has_image_extension(rp.globals.target_path)))
+        # rp.globals.TARGET_FACES.append(faces[rp.globals.target_face_index])
+        # if 'face_enhancer' in rp.globals.frame_processors:
+        #     rp.globals.selected_enhancer = 'GFPGAN'
        
     batch_process_regular(None, False, None)
 
@@ -173,15 +173,15 @@ def get_processing_plugins(masking_engine):
     if masking_engine is not None:
         processors.update({masking_engine: {}})
     
-    if roop.globals.selected_enhancer == 'GFPGAN':
+    if rp.globals.selected_enhancer == 'GFPGAN':
         processors.update({"gfpgan": {}})
-    elif roop.globals.selected_enhancer == 'Codeformer':
+    elif rp.globals.selected_enhancer == 'Codeformer':
         processors.update({"codeformer": {}})
-    elif roop.globals.selected_enhancer == 'DMDNet':
+    elif rp.globals.selected_enhancer == 'DMDNet':
         processors.update({"dmdnet": {}})
-    elif roop.globals.selected_enhancer == 'GPEN':
+    elif rp.globals.selected_enhancer == 'GPEN':
         processors.update({"gpen": {}})
-    elif roop.globals.selected_enhancer == 'Restoreformer++':
+    elif rp.globals.selected_enhancer == 'Restoreformer++':
         processors.update({"restoreformer++": {}})
     return processors
 
@@ -195,9 +195,9 @@ def live_swap(frame, options):
     if process_mgr is None:
         process_mgr = ProcessMgr(None)
     
-#    if len(roop.globals.INPUT_FACESETS) <= selected_index:
+#    if len(rp.globals.INPUT_FACESETS) <= selected_index:
 #        selected_index = 0
-    process_mgr.initialize(roop.globals.INPUT_FACESETS, roop.globals.TARGET_FACES, options)
+    process_mgr.initialize(rp.globals.INPUT_FACESETS, rp.globals.TARGET_FACES, options)
     newframe = process_mgr.process_frame(frame)
     if newframe is None:
         return frame
@@ -212,10 +212,10 @@ def batch_process_regular(files:list[ProcessEntry], masking_engine:str, new_clip
     if process_mgr is None:
         process_mgr = ProcessMgr(progress)
     mask = imagemask["layers"][0] if imagemask is not None else None
-    if len(roop.globals.INPUT_FACESETS) <= selected_index:
+    if len(rp.globals.INPUT_FACESETS) <= selected_index:
         selected_index = 0
-    options = ProcessOptions(get_processing_plugins(masking_engine), roop.globals.distance_threshold, roop.globals.blend_ratio, roop.globals.face_swap_mode, selected_index, new_clip_text, mask, num_swap_steps, False)
-    process_mgr.initialize(roop.globals.INPUT_FACESETS, roop.globals.TARGET_FACES, options)
+    options = ProcessOptions(get_processing_plugins(masking_engine), rp.globals.distance_threshold, rp.globals.blend_ratio, rp.globals.face_swap_mode, selected_index, new_clip_text, mask, num_swap_steps, False)
+    process_mgr.initialize(rp.globals.INPUT_FACESETS, rp.globals.TARGET_FACES, options)
     batch_process(files, use_new_method)
     return
 
@@ -226,10 +226,10 @@ def batch_process_with_options(files:list[ProcessEntry], options, progress):
     limit_resources()
     if process_mgr is None:
         process_mgr = ProcessMgr(progress)
-    process_mgr.initialize(roop.globals.INPUT_FACESETS, roop.globals.TARGET_FACES, options)
-    roop.globals.keep_frames = False
-    roop.globals.wait_after_extraction = False
-    roop.globals.skip_audio = False
+    process_mgr.initialize(rp.globals.INPUT_FACESETS, rp.globals.TARGET_FACES, options)
+    rp.globals.keep_frames = False
+    rp.globals.wait_after_extraction = False
+    rp.globals.skip_audio = False
     batch_process(files, True)
 
 
@@ -237,12 +237,12 @@ def batch_process_with_options(files:list[ProcessEntry], options, progress):
 def batch_process(files:list[ProcessEntry], use_new_method) -> None:
     global clip_text, process_mgr
 
-    roop.globals.processing = True
+    rp.globals.processing = True
 
     # limit threads for some providers
     max_threads = suggest_execution_threads()
     if max_threads == 1:
-        roop.globals.execution_threads = 1
+        rp.globals.execution_threads = 1
 
     imagefiles:list[ProcessEntry] = []
     videofiles:list[ProcessEntry] = []
@@ -253,14 +253,14 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
     for index, f in enumerate(files):
         fullname = f.filename
         if util.has_image_extension(fullname):
-            destination = util.get_destfilename_from_path(fullname, roop.globals.output_path, f'.{roop.globals.CFG.output_image_format}')
+            destination = util.get_destfilename_from_path(fullname, rp.globals.output_path, f'.{rp.globals.CFG.output_image_format}')
             destination = util.replace_template(destination, index=index)
             pathlib.Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
             f.finalname = destination
             imagefiles.append(f)
 
         elif util.is_video(fullname) or util.has_extension(fullname, ['gif']):
-            destination = util.get_destfilename_from_path(fullname, roop.globals.output_path, f'__temp.{roop.globals.CFG.output_video_format}')
+            destination = util.get_destfilename_from_path(fullname, rp.globals.output_path, f'__temp.{rp.globals.CFG.output_video_format}')
             f.finalname = destination
             videofiles.append(f)
 
@@ -274,13 +274,13 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
             origimages.append(f.filename)
             fakeimages.append(f.finalname)
 
-        process_mgr.run_batch(origimages, fakeimages, roop.globals.execution_threads)
+        process_mgr.run_batch(origimages, fakeimages, rp.globals.execution_threads)
         origimages.clear()
         fakeimages.clear()
 
     if(len(videofiles) > 0):
         for index,v in enumerate(videofiles):
-            if not roop.globals.processing:
+            if not rp.globals.processing:
                 end_processing('Processing stopped!')
                 return
             fps = v.fps if v.fps > 0 else util.detect_fps(v.filename)
@@ -289,20 +289,20 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
 
             update_status(f'Creating {os.path.basename(v.finalname)} with {fps} FPS...')
             start_processing = time()
-            if roop.globals.keep_frames or not use_new_method:
+            if rp.globals.keep_frames or not use_new_method:
                 util.create_temp(v.filename)
                 update_status('Extracting frames...')
                 ffmpeg.extract_frames(v.filename,v.startframe,v.endframe, fps)
-                if not roop.globals.processing:
+                if not rp.globals.processing:
                     end_processing('Processing stopped!')
                     return
 
                 temp_frame_paths = util.get_temp_frame_paths(v.filename)
-                process_mgr.run_batch(temp_frame_paths, temp_frame_paths, roop.globals.execution_threads)
-                if not roop.globals.processing:
+                process_mgr.run_batch(temp_frame_paths, temp_frame_paths, rp.globals.execution_threads)
+                if not rp.globals.processing:
                     end_processing('Processing stopped!')
                     return
-                if roop.globals.wait_after_extraction:
+                if rp.globals.wait_after_extraction:
                     extract_path = os.path.dirname(temp_frame_paths[0])
                     util.open_folder(extract_path)
                     input("Press any key to continue...")
@@ -310,16 +310,16 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
                     util.sort_rename_frames(extract_path)                                    
                 
                 ffmpeg.create_video(v.filename, v.finalname, fps)
-                if not roop.globals.keep_frames:
+                if not rp.globals.keep_frames:
                     util.delete_temp_frames(temp_frame_paths[0])
             else:
                 if util.has_extension(v.filename, ['gif']):
                     skip_audio = True
                 else:
-                    skip_audio = roop.globals.skip_audio
-                process_mgr.run_batch_inmem(v.filename, v.finalname, v.startframe, v.endframe, fps,roop.globals.execution_threads, skip_audio)
+                    skip_audio = rp.globals.skip_audio
+                process_mgr.run_batch_inmem(v.filename, v.finalname, v.startframe, v.endframe, fps,rp.globals.execution_threads, skip_audio)
                 
-            if not roop.globals.processing:
+            if not rp.globals.processing:
                 end_processing('Processing stopped!')
                 return
             
@@ -327,7 +327,7 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
             if os.path.isfile(video_file_name):
                 destination = ''
                 if util.has_extension(v.filename, ['gif']):
-                    gifname = util.get_destfilename_from_path(v.filename, roop.globals.output_path, '.gif')
+                    gifname = util.get_destfilename_from_path(v.filename, rp.globals.output_path, '.gif')
                     destination = util.replace_template(gifname, index=index)
                     pathlib.Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
 
@@ -336,7 +336,7 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
                     if os.path.isfile(destination):
                         os.remove(video_file_name)
                 else:
-                    skip_audio = roop.globals.skip_audio
+                    skip_audio = rp.globals.skip_audio
                     destination = util.replace_template(video_file_name, index=index)
                     pathlib.Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
 
@@ -355,13 +355,13 @@ def batch_process(files:list[ProcessEntry], use_new_method) -> None:
 
 def end_processing(msg:str):
     update_status(msg)
-    roop.globals.target_folder_path = None
+    rp.globals.target_folder_path = None
     release_resources()
 
 
 def destroy() -> None:
-    if roop.globals.target_path:
-        util.clean_temp(roop.globals.target_path)
+    if rp.globals.target_path:
+        util.clean_temp(rp.globals.target_path)
     release_resources()        
     sys.exit()
 
@@ -370,9 +370,9 @@ def run() -> None:
     parse_args()
     if not pre_check():
         return
-    roop.globals.CFG = Settings('config.yaml')
-    roop.globals.execution_threads = roop.globals.CFG.max_threads
-    roop.globals.video_encoder = roop.globals.CFG.output_video_codec
-    roop.globals.video_quality = roop.globals.CFG.video_quality
-    roop.globals.max_memory = roop.globals.CFG.memory_limit if roop.globals.CFG.memory_limit > 0 else None
+    rp.globals.CFG = Settings('config.yaml')
+    rp.globals.execution_threads = rp.globals.CFG.max_threads
+    rp.globals.video_encoder = rp.globals.CFG.output_video_codec
+    rp.globals.video_quality = rp.globals.CFG.video_quality
+    rp.globals.max_memory = rp.globals.CFG.memory_limit if rp.globals.CFG.memory_limit > 0 else None
     main.run()

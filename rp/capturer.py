@@ -2,7 +2,7 @@ from typing import Optional
 import cv2
 import numpy as np
 
-from roop.typing import Frame
+from rp.typing import Frame
 
 def get_image_frame(filename: str):
     try:

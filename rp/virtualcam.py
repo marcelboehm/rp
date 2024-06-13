@@ -1,5 +1,5 @@
 import cv2
-import roop.globals
+import rp.globals
 import ui.globals
 import pyvirtualcam
 import threading
@@ -11,8 +11,8 @@ cam_thread = None
 vcam = None
 
 def virtualcamera(streamobs, cam_num,width,height):
-    from roop.ProcessOptions import ProcessOptions
-    from roop.core import live_swap, get_processing_plugins
+    from rp.ProcessOptions import ProcessOptions
+    from rp.core import live_swap, get_processing_plugins
 
     global cam_active
 
@@ -46,14 +46,14 @@ def virtualcamera(streamobs, cam_num,width,height):
         print(f'Not streaming to virtual camera!')
 
     # always use xseg masking
-    options = ProcessOptions(get_processing_plugins("mask_xseg"), roop.globals.distance_threshold, roop.globals.blend_ratio,
+    options = ProcessOptions(get_processing_plugins("mask_xseg"), rp.globals.distance_threshold, rp.globals.blend_ratio,
                               "all", 0, None, None, 1, False)
     while cam_active:
         ret, frame = cap.read()
         if not ret:
             break
 
-        if len(roop.globals.INPUT_FACESETS) > 0:
+        if len(rp.globals.INPUT_FACESETS) > 0:
             frame = live_swap(frame, options)
         if cam:
             cam.send(frame)

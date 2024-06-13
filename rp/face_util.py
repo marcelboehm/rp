@@ -2,14 +2,14 @@ import threading
 from typing import Any
 import insightface
 
-import roop.globals
-from roop.typing import Frame, Face
+import rp.globals
+from rp.typing import Frame, Face
 
 import cv2
 import numpy as np
 from skimage import transform as trans
-from roop.capturer import get_video_frame
-from roop.utilities import resolve_relative_path, conditional_download
+from rp.capturer import get_video_frame
+from rp.utilities import resolve_relative_path, conditional_download
 
 FACE_ANALYSER = None
 THREAD_LOCK_ANALYSER = threading.Lock()
@@ -21,12 +21,12 @@ def get_face_analyser() -> Any:
     global FACE_ANALYSER
 
     with THREAD_LOCK_ANALYSER:
-        if FACE_ANALYSER is None or roop.globals.g_current_face_analysis != roop.globals.g_desired_face_analysis:
+        if FACE_ANALYSER is None or rp.globals.g_current_face_analysis != rp.globals.g_desired_face_analysis:
             model_path = resolve_relative_path('..')
             # removed genderage
-            allowed_modules = roop.globals.g_desired_face_analysis
-            roop.globals.g_current_face_analysis = roop.globals.g_desired_face_analysis
-            if roop.globals.CFG.force_cpu:
+            allowed_modules = rp.globals.g_desired_face_analysis
+            rp.globals.g_current_face_analysis = rp.globals.g_desired_face_analysis
+            if rp.globals.CFG.force_cpu:
                 print("Forcing CPU for Face Analysis")
                 FACE_ANALYSER = insightface.app.FaceAnalysis(
                     name="buffalo_l",
@@ -34,11 +34,11 @@ def get_face_analyser() -> Any:
                 )
             else:
                 FACE_ANALYSER = insightface.app.FaceAnalysis(
-                    name="buffalo_l", root=model_path, providers=roop.globals.execution_providers,allowed_modules=allowed_modules
+                    name="buffalo_l", root=model_path, providers=rp.globals.execution_providers,allowed_modules=allowed_modules
                 )
             FACE_ANALYSER.prepare(
                 ctx_id=0,
-                det_size=(640, 640) if roop.globals.default_det_size else (320, 320),
+                det_size=(640, 640) if rp.globals.default_det_size else (320, 320),
             )
     return FACE_ANALYSER
 

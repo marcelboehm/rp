@@ -1,7 +1,7 @@
 from typing import Any
 
 from insightface.app.common import Face
-from roop.FaceSet import FaceSet
+from rp.FaceSet import FaceSet
 import numpy
 
 Face = Face

@@ -19,9 +19,9 @@ from typing import List, Any
 from tqdm import tqdm
 from scipy.spatial import distance
 
-import roop.template_parser as template_parser
+import rp.template_parser as template_parser
 
-import roop.globals
+import rp.globals
 
 TEMP_FILE = "temp.mp4"
 TEMP_DIRECTORY = "temp"
@@ -74,7 +74,7 @@ def sort_rename_frames(path: str):
         of = os.path.join(path, filenames[i])
         newidx = i + 1
         new_filename = os.path.join(
-            path, f"{newidx:06d}." + roop.globals.CFG.output_image_format
+            path, f"{newidx:06d}." + rp.globals.CFG.output_image_format
         )
         os.rename(of, new_filename)
 
@@ -85,7 +85,7 @@ def get_temp_frame_paths(target_path: str) -> List[str]:
         (
             os.path.join(
                 glob.escape(temp_directory_path),
-                f"*.{roop.globals.CFG.output_image_format}",
+                f"*.{rp.globals.CFG.output_image_format}",
             )
         )
     )
@@ -128,12 +128,12 @@ def replace_template(file_path: str, index: int = 0) -> str:
     # Remove the "__temp" placeholder that was used as a temporary filename
     fn = fn.replace("__temp", "")
 
-    template = roop.globals.CFG.output_template
+    template = rp.globals.CFG.output_template
     replaced_filename = template_parser.parse(
         template, {"index": str(index), "file": fn}
     )
 
-    return os.path.join(roop.globals.output_path, f"{replaced_filename}{ext}")
+    return os.path.join(rp.globals.output_path, f"{replaced_filename}{ext}")
 
 
 def create_temp(target_path: str) -> None:
@@ -152,7 +152,7 @@ def move_temp(target_path: str, output_path: str) -> None:
 def clean_temp(target_path: str) -> None:
     temp_directory_path = get_temp_directory_path(target_path)
     parent_directory_path = os.path.dirname(temp_directory_path)
-    if not roop.globals.keep_frames and os.path.isdir(temp_directory_path):
+    if not rp.globals.keep_frames and os.path.isdir(temp_directory_path):
         shutil.rmtree(temp_directory_path)
     if os.path.exists(parent_directory_path) and not os.listdir(parent_directory_path):
         os.rmdir(parent_directory_path)
@@ -221,10 +221,10 @@ def resolve_relative_path(path: str) -> str:
 
 
 def get_device() -> str:
-    if len(roop.globals.execution_providers) < 1:
-        roop.globals.execution_providers = ["CPUExecutionProvider"]
+    if len(rp.globals.execution_providers) < 1:
+        rp.globals.execution_providers = ["CPUExecutionProvider"]
 
-    prov = roop.globals.execution_providers[0]
+    prov = rp.globals.execution_providers[0]
     if "CoreMLExecutionProvider" in prov:
         return "mps"
     if "CUDAExecutionProvider" in prov or "ROCMExecutionProvider" in prov:
@@ -277,7 +277,7 @@ def open_with_default_app(filename:str):
 
 def prepare_for_batch(target_files) -> str:
     print("Preparing temp files")
-    tempfolder = os.path.join(tempfile.gettempdir(), "rooptmp")
+    tempfolder = os.path.join(tempfile.gettempdir(), "rptmp")
     if os.path.exists(tempfolder):
         shutil.rmtree(tempfolder)
     Path(tempfolder).mkdir(parents=True, exist_ok=True)

@@ -6,7 +6,7 @@ from torchvision import transforms
 from clip.clipseg import CLIPDensePredT
 import numpy as np
 
-from roop.typing import Frame
+from rp.typing import Frame
 
 THREAD_LOCK_CLIP = threading.Lock()
 

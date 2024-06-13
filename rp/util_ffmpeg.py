@@ -1,13 +1,13 @@
 
 import os
 import subprocess
-import roop.globals
-import roop.utilities as util
+import rp.globals
+import rp.utilities as util
 
 from typing import List, Any
 
 def run_ffmpeg(args: List[str]) -> bool:
-    commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-y', '-loglevel', roop.globals.log_level]
+    commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-y', '-loglevel', rp.globals.log_level]
     commands.extend(args)
     print ("Running ffmpeg")
     try:
@@ -26,7 +26,7 @@ def cut_video(original_video: str, cut_video: str, start_frame: int, end_frame: 
     num_frames = end_frame - start_frame
 
     if reencode:
-        run_ffmpeg(['-ss',  format(start_time, ".2f"), '-i', original_video, '-c:v', roop.globals.video_encoder, '-c:a', 'aac', '-frames:v', str(num_frames), cut_video])
+        run_ffmpeg(['-ss',  format(start_time, ".2f"), '-i', original_video, '-c:v', rp.globals.video_encoder, '-c:a', 'aac', '-frames:v', str(num_frames), cut_video])
     else:
         run_ffmpeg(['-ss',  format(start_time, ".2f"), '-i', original_video,  '-frames:v', str(num_frames), '-c:v' ,'copy','-c:a' ,'copy', cut_video])
 
@@ -61,19 +61,19 @@ def extract_frames(target_path : str, trim_frame_start, trim_frame_end, fps : fl
     commands = ['-i', target_path, '-q:v', '1', '-pix_fmt', 'rgb24', ]
     if trim_frame_start is not None and trim_frame_end is not None:
         commands.extend([ '-vf', 'trim=start_frame=' + str(trim_frame_start) + ':end_frame=' + str(trim_frame_end) + ',fps=' + str(fps) ])
-    commands.extend(['-vsync', '0', os.path.join(temp_directory_path, '%06d.' + roop.globals.CFG.output_image_format)])
+    commands.extend(['-vsync', '0', os.path.join(temp_directory_path, '%06d.' + rp.globals.CFG.output_image_format)])
     return run_ffmpeg(commands)
 
 
 def create_video(target_path: str, dest_filename: str, fps: float = 24.0, temp_directory_path: str = None) -> None:
     if temp_directory_path is None:
         temp_directory_path = util.get_temp_directory_path(target_path)
-    run_ffmpeg(['-r', str(fps), '-i', os.path.join(temp_directory_path, f'%06d.{roop.globals.CFG.output_image_format}'), '-c:v', roop.globals.video_encoder, '-crf', str(roop.globals.video_quality), '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', dest_filename])
+    run_ffmpeg(['-r', str(fps), '-i', os.path.join(temp_directory_path, f'%06d.{rp.globals.CFG.output_image_format}'), '-c:v', rp.globals.video_encoder, '-crf', str(rp.globals.video_quality), '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', dest_filename])
     return dest_filename
 
 
 def create_gif_from_video(video_path: str, gif_path):
-    from roop.capturer import get_video_frame
+    from rp.capturer import get_video_frame
 
     fps = util.detect_fps(video_path)
     frame = get_video_frame(video_path)
